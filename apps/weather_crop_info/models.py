@@ -20,8 +20,8 @@ class WeatherStation(models.Model):
 
 
 class WeatherRecord(models.Model):
-    weather_station_id = models.ForeignKey(
-        WeatherStation, on_delete=models.CASCADE, db_column='weather_station_id', verbose_name="Application Generated Station Reference")
+    weather_station = models.ForeignKey(
+        WeatherStation, on_delete=models.CASCADE, verbose_name="Application Generated Station Reference")
     date = models.DateTimeField(verbose_name="Weather Record Generated Date")
     min_temp = models.FloatField(null=True, verbose_name="Minimum Temperature")
     max_temp = models.FloatField(null=True, verbose_name="Maximum Temperature")
@@ -40,7 +40,7 @@ class WeatherRecord(models.Model):
         db_table = 'weather_record'
         constraints = [
             models.UniqueConstraint(
-                fields=['weather_station_id', 'date'], name='unique_station_date_constraint'
+                fields=['weather_station', 'date'], name='unique_station_date_constraint'
             )
         ]
 
@@ -64,8 +64,8 @@ class CropYieldRecord(models.Model):
 
 
 class WeatherStationStats(models.Model):
-    weather_station_id = models.ForeignKey(
-        WeatherStation, on_delete=models.CASCADE, db_column='weather_station_id', verbose_name="Application Generated Station Reference")
+    weather_station = models.ForeignKey(
+        WeatherStation, on_delete=models.CASCADE, verbose_name="Application Generated Station Reference")
     year = models.PositiveIntegerField(
         verbose_name="Station Stats Corresponding Year")
     avg_max_temp = models.FloatField(
@@ -79,6 +79,6 @@ class WeatherStationStats(models.Model):
         db_table = 'weather_station_stats'
         constraints = [
             models.UniqueConstraint(
-                fields=['weather_station_id', 'year'], name='unique_station_year_constraint'
+                fields=['weather_station', 'year'], name='unique_station_year_constraint'
             )
         ]
