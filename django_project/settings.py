@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_extensions',
+    'rest_framework',
+    'drf_yasg',
 
     'apps.weather_crop_info',
 ]
@@ -130,3 +132,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Developer Defined Settings
 WEATHER_DATA_DIR = BASE_DIR / 'wx_data'
 CROP_YIELD_DATA_DIR = BASE_DIR / 'yld_data'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+}
