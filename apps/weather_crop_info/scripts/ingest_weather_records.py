@@ -25,7 +25,7 @@ def file_handler(file_path):
             date, max_temp, min_temp, precip = record.strip().split("\t")
             records.append(
                 {
-                    "weather_station_id": weather_station,
+                    "weather_station": weather_station,
                     "date": datetime.strptime(date, '%Y%m%d'),
                     "min_temp": None if int(min_temp) == -9999 else float(min_temp),
                     "max_temp": None if int(max_temp) == -9999 else float(max_temp),
@@ -38,11 +38,11 @@ def file_handler(file_path):
     records = [
         {
             "id": WeatherRecord.objects.filter(
-                weather_station_id=weather_station.id,
+                weather_station=weather_station.id,
                 date=record.get("date")
             ).first().id
             if WeatherRecord.objects.filter(
-                weather_station_id=weather_station.id,
+                weather_station=weather_station.id,
                 date=record.get("date")
             ).first() is not None
             else None,
