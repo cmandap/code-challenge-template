@@ -57,3 +57,12 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
+
+<a name="dm"></a>
+<h2>Data Modeling</h2>
+
+The ORM's data definition and model semantics for the data models can be found in [models.py](https://github.com/cmandap/code-challenge-template/blob/6ed8823b97a3a5d80dbd23f54a4a764d777d4f9a/apps/weather_crop_info/models.py).
+There is a dedicated table maintained for weather station to obtain extensibility factor to store a couple of station information if needed in future.
+Models WeatherRecord and WeatherStationStats maintain a foreign key reference to the WeatherStation.
+Models WeatherRecord, WeatherStation, and CropYieldRecord models maintain row metadata for additional information.
+
