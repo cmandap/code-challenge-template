@@ -12,19 +12,17 @@ This repository is built in response to the corteva code challenge. The function
 
 <a name="inst"></a>
 <h2>Installation & Setup</h2>
-Follow the below guidelines to get the application running. All the commands provided below are in compliance with the macOs. Look for corresponsding command online when working on different operating systems. 
+Follow the below guidelines to get the application running. All the commands provided below are in compliance with the macOS. Look for corresponsding command online when working on different operating systems. 
 <h3> Requirements </h3>
-After cloing the github repository, create a virtual environment by executing the following command.
+<br/>After cloing the github repository, create a virtual environment by executing the following command.
 ```
 python3 -m venv <env_name>
 ```
-<br/>
-Activate the virtual environment by execcuting the following command.
+<br/>Activate the virtual environment by execcuting the following command.
 ```
 source <env_name>/bin/activate
 ```
-<br/>
-Now, install the dependencies by executing the following command.
+<br/>Now, install the dependencies by executing the following command.
 ```
 pip install -r requirements.txt
 ```
