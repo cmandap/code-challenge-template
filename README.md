@@ -52,7 +52,8 @@ python manage.py migrate
 ```
 
 <h3>Runserver</h3>
-Bring the server by executing the following command.
+
+<br/>Bring the server by executing the following command.
 ```
 python manage.py runserver
 ```
