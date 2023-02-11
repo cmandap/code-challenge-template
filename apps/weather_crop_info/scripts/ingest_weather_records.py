@@ -135,6 +135,8 @@ def run():
         ret += file_handler(file)
         inserted_records_count += ret[0]
         updated_records_count += ret[1]
+
+    # TODO : invoke calculate_weather_station_stats script automatically.
     print(
         f"Finally inserted {inserted_records_count} new records in \
             {(datetime.now() - start_time).total_seconds()} seconds")
