@@ -5,8 +5,8 @@ This repository is built in response to the corteva code challenge. The function
 2. [ Data Modeling](#dm)
 3. [ Ingestion ](#ingestion)
 4. [ Data Analysis ](#da)
-5. [ Testing ](#testing)
-6. [ REST API's ](#restapi)
+5. [ REST API's ](#restapi)
+6. [ Testing ](#testing)
 7. [ Swagger Docs](#swagger)
 8. [ Deployment ](#deploy)
 
@@ -69,4 +69,46 @@ Models WeatherRecord, WeatherStation, and CropYieldRecord models maintain row me
 <a name="ingestion"></a>
 <h2>Data Ingestion</h2>
 Data ingestion scripts to populate the weather, crop yield data from files to models can be found under [scripts](https://github.com/cmandap/code-challenge-template/tree/main/apps/weather_crop_info/scripts) folder. Both scripts [ingest_crop_yield_records](https://github.com/cmandap/code-challenge-template/blob/main/apps/weather_crop_info/scripts/ingest_crop_yield_records.py) and [ingest_weather_records](https://github.com/cmandap/code-challenge-template/blob/main/apps/weather_crop_info/scripts/ingest_weather_records.py) ensures that only missing records are created, records are updated otherwise. Currently, the files are being processed sequentially in both the scripts. Parallel processing of files will result in better performance therefore, a TODO for the same has been created.
+
+<br/>The scripts can be executed by running the following command.
+```
+python manage.py runscript <file_name_without_.py_extension>
+```
+
+<a name="da"></a>
+<h2>Data Analysis</h2>
+The script [calculate_weather_station_stats]() is used to calculate weather station statistics. All the missing data is ignored while calculating the statistics.
+
+<a name="restapi"></a>
+<h2>REST API's</h2>
+
+<br/>The following endpoints are made available to operate on data.
+```
+/api/weather
+/api/weather/stats
+```
+
+Both the endpoints establish a filter on top of station ID and date fields. Moreover, additional field called page is used to work around with the pagination. The page size is fixed to 10 and the same can be updated through [settings.py](https://github.com/cmandap/code-challenge-template/blob/main/django_project/settings.py).
+
+Note that the endpoints are prefixed with ``` weather-crop-info/v1 ``` to represent the app to which the endpoints belong to and the current version of the app.
+
+<a name="testing"></a>
+<h2>Running Tests</h2>
+
+<br/>Tests for scripts and views serving the endpoints are written under [tests.py](https://github.com/cmandap/code-challenge-template/blob/main/apps/weather_crop_info/tests.py) file. To execute the tests run the following command.
+```
+python manage.py test
+```
+
+<a name="swagger"></a>
+<h2>Swagger Doc</h2>
+
+<br/> A swagger document has been created for all the defined endpoints and can be accessed by the following endpoint.
+```
+/doc
+```
+
+<a name="deploy"></a>
+<h2>Deployment</h2>
+
 
