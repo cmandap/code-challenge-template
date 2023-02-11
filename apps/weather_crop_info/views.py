@@ -1,3 +1,8 @@
+"""
+    This module contains views for weather_crop_info app.
+
+    Author: Chandrahas Reddy Mandapati 
+"""
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +15,14 @@ from .filters import WeatherRecordFilterBackend, WeatherStationStatsFilterBacken
 
 
 class WeatherRecordList(APIView, PageNumberPagination):
+    """
+        This view must handle get and post requests for WeatherRecord model.
+        Makes use of WeatherRecordSerializer.
+        Makes use of PageNumberPagination.
+
+        get:
+        Return list of weather records and pagination information.
+    """
     filter_backends = (WeatherRecordFilterBackend,)
 
     def get(self, request, format=None):
@@ -33,6 +46,14 @@ class WeatherRecordList(APIView, PageNumberPagination):
 
 
 class WeatherStationStatsList(APIView, PageNumberPagination):
+    """
+        This view must handle get and post requests for WeatherStationStats model.
+        Makes use of WeatherStationStatsSerializer.
+        Makes use of PageNumberPagination.
+
+        get:
+        Return list of weather Station stats and pagination information.
+    """
     filter_backends = (WeatherStationStatsFilterBackend,)
 
     def get(self, request, format=None):

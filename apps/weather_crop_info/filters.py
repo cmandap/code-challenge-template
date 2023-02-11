@@ -1,10 +1,26 @@
+"""
+    This module contains filters for weather_crop_info app.
+
+    Author: Chandrahas Reddy Mandapati 
+"""
 from rest_framework.filters import BaseFilterBackend
 import coreapi
 import coreschema
 
 
 class WeatherRecordFilterBackend(BaseFilterBackend):
+    """
+        Filter Backend handling filters for WeatherRecord model.
+    """
+
     def get_schema_fields(self, view):
+        """
+            function responsible for providing schema fields to swagger doc
+            for WeatherRecordList api.
+
+            Returns:
+                Api schema
+        """
         return [coreapi.Field(
             name='station-id',
             location='query',
@@ -27,7 +43,18 @@ class WeatherRecordFilterBackend(BaseFilterBackend):
 
 
 class WeatherStationStatsFilterBackend(BaseFilterBackend):
+    """
+        Filter Backend handling filters for WeatherStationStats model.
+    """
+
     def get_schema_fields(self, view):
+        """
+            function responsible for providing schema fields to swagger doc
+            for WeatherStationStatsList api.
+
+            Returns:
+                Api schema
+        """
         return [coreapi.Field(
             name='station-id',
             location='query',
