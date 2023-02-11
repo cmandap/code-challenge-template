@@ -66,3 +66,7 @@ There is a dedicated table maintained for weather station to obtain extensibilit
 Models WeatherRecord and WeatherStationStats maintain a foreign key reference to the WeatherStation.
 Models WeatherRecord, WeatherStation, and CropYieldRecord models maintain row metadata for additional information.
 
+<a name="ingestion"></a>
+<h2>Data Ingestion</h2>
+Data ingestion scripts to populate the weather, crop yield data from files to models can be found under [scripts](https://github.com/cmandap/code-challenge-template/tree/main/apps/weather_crop_info/scripts) folder. Both scripts [ingest_crop_yield_records](https://github.com/cmandap/code-challenge-template/blob/main/apps/weather_crop_info/scripts/ingest_crop_yield_records.py) and [ingest_weather_records](https://github.com/cmandap/code-challenge-template/blob/main/apps/weather_crop_info/scripts/ingest_weather_records.py) ensures that only missing records are created, records are updated otherwise. Currently, the files are being processed sequentially in both the scripts. Parallel processing of files will result in better performance therefore, a TODO for the same has been created.
+
