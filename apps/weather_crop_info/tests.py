@@ -38,6 +38,8 @@ class DataIngestionTestCase(TestCase):
                 None
         """
         self.station_id = "USC00000072"
+
+        # creating temp file for the testing purpose.
         self.weather_record_file_name = "/tmp/USC00000072.txt"
         self.crop_yield_file_name = "/tmp/crop_yield_data.txt"
         test_weather_records = [
@@ -61,16 +63,21 @@ class DataIngestionTestCase(TestCase):
             Returns:
                 None
         """
+        # populating the data into the respective model.
         weather_record_file_handler(self.weather_record_file_name)
+
+        # testing correct creation of model records.
         weather_station = WeatherStation.objects.get(
             station_id=self.station_id)
         self.assertEqual(weather_station.station_id, self.station_id)
         query_date = datetime.strptime("19850101", "%Y%m%d")
+        weather_records = WeatherRecord.objects.all()
+        self.assertEqual(len(weather_records), 2)
+
+        # testing the correctness of the data.
         weather_record = WeatherRecord.objects.get(
             weather_station_id=weather_station.id, date=query_date)
         self.assertEqual(weather_record.min_temp, float(-128))
-        weather_records = WeatherRecord.objects.all()
-        self.assertEqual(len(weather_records), 2)
 
     def test_crop_yield_records_data_ingestion(self):
         """
@@ -83,9 +90,14 @@ class DataIngestionTestCase(TestCase):
             Returns:
                 None
         """
+        # populating the data into the respective model.
         crop_yield_file_handler(self.crop_yield_file_name)
+
+        # testing correct creation of model records.
         crop_yield_records = CropYieldRecord.objects.all()
         self.assertEqual(len(crop_yield_records), 2)
+
+        # testing the correctness of the data.
         crop_yield_record = CropYieldRecord.objects.get(year=1985)
         self.assertEqual(crop_yield_record.total_yield, 225447)
 
@@ -100,12 +112,17 @@ class DataIngestionTestCase(TestCase):
             Returns:
                 None
         """
+        # populating the data into the respective model.
         weather_record_file_handler(self.weather_record_file_name)
         update_weather_station_stats()
+
+        # testing correct creation of model records.
         weather_station = WeatherStation.objects.get(
             station_id=self.station_id)
         station_stats = WeatherStationStats.objects.all()
         self.assertEqual(len(station_stats), 1)
+
+        # testing the correctness of the data.
         station_stats_record = WeatherStationStats.objects.get(
             weather_station_id=weather_station.id, year=1985)
         self.assertEqual(station_stats_record.avg_max_temp, float(-72))
@@ -121,6 +138,7 @@ class DataIngestionTestCase(TestCase):
             Returns:
                 None
         """
+        # remove the temporary file created
         os.remove("/tmp/USC00000072.txt")
 
 
@@ -137,6 +155,7 @@ class WeatherAPITestCase(TestCase):
             Returns:
                 None
         """
+        # creating temp file for the testing purpose.
         self.station_id = "USC00000072"
         self.weather_record_file_name = "/tmp/USC00000072.txt"
         test_weather_records = [
@@ -155,9 +174,14 @@ class WeatherAPITestCase(TestCase):
             Returns:
                 None
         """
+        # populating the data into the respective model.
         weather_record_file_handler(self.weather_record_file_name)
+
+        # testing the url resolution towards view
         self.assertEqual('/weather-crop-info/v1/api/weather', reverse(
             'WeatherRecord'))
+
+        # testing the api request and correctness of data
         response = self.client.get(
             '/weather-crop-info/v1/api/weather', {})
         self.assertEqual(response.status_code, 200)
@@ -174,9 +198,14 @@ class WeatherAPITestCase(TestCase):
             Returns:
                 None
         """
+        # populating the data into the respective model.
         weather_record_file_handler(self.weather_record_file_name)
+
+        # testing the url resolution towards view
         self.assertEqual('/weather-crop-info/v1/api/weather/stats', reverse(
             'WeatherStationStats'))
+
+        # testing the api request and correctness of data
         response = self.client.get(
             '/weather-crop-info/v1/api/weather/stats', {})
         self.assertEqual(response.status_code, 200)
@@ -194,4 +223,5 @@ class WeatherAPITestCase(TestCase):
             Returns:
                 None
         """
+        # remove the temporary file created
         os.remove("/tmp/USC00000072.txt")

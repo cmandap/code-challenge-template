@@ -30,8 +30,11 @@ def file_handler(file_path):
     """
     start_time = datetime.now()
 
+    # extract only the filename without extension.
+    # this represents the weather station
     file_name = Path(file_path).stem
 
+    # create the weather station record if one doesnt exists
     weather_station, created = WeatherStation.objects.get_or_create(
         station_id=file_name,
         station_name=file_name,
@@ -41,6 +44,8 @@ def file_handler(file_path):
     records = []
     records_to_update = []
     records_to_create = []
+
+    # extract the records from the file
     with open(file_path, "r") as file:
         for record in file:
             date, max_temp, min_temp, precip = record.strip().split("\t")
@@ -56,6 +61,9 @@ def file_handler(file_path):
                 }
             )
 
+    # check what all records exists already based on the assumption that all the
+    # existing records will have id.
+    # TODO : populate records_to_update only if the corresponsing fields have changed
     records = [
         {
             "id": WeatherRecord.objects.filter(
@@ -79,10 +87,12 @@ def file_handler(file_path):
 
     [record.pop("create_by") for record in records_to_update]
 
+    # create all the records in bulk (for better performance).
     created_records = WeatherRecord.objects.bulk_create(
         [WeatherRecord(**values) for values in records_to_create],
         batch_size=1000)
 
+    # update all the records in bulk
     WeatherRecord.objects.bulk_update(
         [
             WeatherRecord(id=values.get("id"), min_temp=values.get("min_temp"),
@@ -115,8 +125,12 @@ def run():
     start_time = datetime.now()
     inserted_records_count = 0
     updated_records_count = 0
+
+    # extract all the files in the folder set in settings.
     files = [join(settings.WEATHER_DATA_DIR, f) for f in listdir(
         settings.WEATHER_DATA_DIR) if isfile(join(settings.WEATHER_DATA_DIR, f))]
+
+    # TODO : process all the files parallely for faster execution.
     for file in files:
         ret += file_handler(file)
         inserted_records_count += ret[0]

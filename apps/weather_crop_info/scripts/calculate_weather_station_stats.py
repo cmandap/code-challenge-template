@@ -27,6 +27,8 @@ def update_weather_station_stats():
             None.
     """
     start_time = datetime.now()
+
+    # extract the statistical information directly from the WeatherRecord model
     records = WeatherRecord.objects.values(
         'weather_station',
         year=F('date__year')
@@ -39,9 +41,13 @@ def update_weather_station_stats():
         min_temp__isnull=True,
         precipitation__isnull=True
     )
+
     records_to_update = []
     records_to_create = []
 
+    # check what all records exists already based on the assumption that all the
+    # existing records will have id.
+    # TODO : populate records_to_update only if the corresponsing fields have changed
     records = [
         {
             "id": WeatherStationStats.objects.filter(
@@ -71,10 +77,12 @@ def update_weather_station_stats():
     ]
     [record.pop("weather_station") for record in records_to_create]
 
+    # create all the records in bulk (for better performance).
     created_records = WeatherStationStats.objects.bulk_create(
         [WeatherStationStats(**values) for values in records_to_create],
         batch_size=1000)
 
+    # update all the records in bulk
     WeatherStationStats.objects.bulk_update(
         [
             WeatherStationStats(id=values.get("id"), avg_max_temp=values.get(

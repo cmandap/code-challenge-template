@@ -30,8 +30,12 @@ class WeatherRecordList(APIView, PageNumberPagination):
 
     def get(self, request, format=None):
         queryset = WeatherRecord.objects.all()
+
+        # retrieving query parameters
         station_id = self.request.query_params.get('station-id')
         date = self.request.query_params.get('date')
+
+        # filtering based on the query parameters
         if station_id is not None:
             queryset = queryset.filter(
                 weather_station__station_id__contains=station_id)
@@ -41,8 +45,12 @@ class WeatherRecordList(APIView, PageNumberPagination):
                 queryset = queryset.filter(date=date)
             except ValueError as e:
                 return Response(status=HTTPStatus.BAD_REQUEST)
+
+        # Invoke paginator on top of queryset
         weather_records_paginated = self.paginate_queryset(
             queryset, request, view=self)
+
+        # serialize the paginated records.
         serializer = WeatherRecordSerializer(
             weather_records_paginated, many=True)
         return Response(serializer.data)
@@ -61,15 +69,23 @@ class WeatherStationStatsList(APIView, PageNumberPagination):
 
     def get(self, request, format=None):
         queryset = WeatherStationStats.objects.all()
+
+        # retrieving query parameters
         station_id = self.request.query_params.get('station-id')
         year = self.request.query_params.get('year')
+
+        # filtering based on the query parameters
         if station_id is not None:
             queryset = queryset.filter(
                 weather_station__station_id__contains=station_id)
         if year is not None:
             queryset = queryset.filter(year=int(year))
+
+        # Invoke paginator on top of queryset
         weather_station_stats_paginated = self.paginate_queryset(
             queryset, request, view=self)
+
+        # serialize the paginated records.
         serializer = WeatherStationStatsSerializer(
             weather_station_stats_paginated, many=True)
         return Response(serializer.data)

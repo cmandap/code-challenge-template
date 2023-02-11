@@ -31,6 +31,8 @@ def file_handler(file_path):
     records = []
     records_to_update = []
     records_to_create = []
+
+    # extract the records from the file
     with open(file_path, "r") as file:
         for record in file:
             year, total_yield = map(int, record.strip().split("\t"))
@@ -43,6 +45,9 @@ def file_handler(file_path):
                 }
             )
 
+    # check what all records exists already based on the assumption that all the
+    # existing records will have id.
+    # TODO : populate records_to_update only if the corresponsing fields have changed
     records = [
         {
             "id": CropYieldRecord.objects.filter(
@@ -64,10 +69,12 @@ def file_handler(file_path):
 
     [record.pop("create_by") for record in records_to_update]
 
+    # create all the records in bulk (for better performance).
     created_records = CropYieldRecord.objects.bulk_create(
         [CropYieldRecord(**values) for values in records_to_create],
         batch_size=1000)
 
+    # update all the records in bulk
     CropYieldRecord.objects.bulk_update(
         [
             CropYieldRecord(id=values.get("id"), total_yield=values.get(
@@ -99,9 +106,13 @@ def run():
     start_time = datetime.now()
     inserted_records_count = 0
     updated_records_count = 0
+
+    # extract all the files in the folder set in settings.
     files = [join(settings.CROP_YIELD_DATA_DIR, f)
              for f in listdir(settings.CROP_YIELD_DATA_DIR) if isfile(
         join(settings.CROP_YIELD_DATA_DIR, f))]
+
+    # TODO : process all the files parallely for faster execution.
     for file in files:
         ret += file_handler(file)
         inserted_records_count += ret[0]
