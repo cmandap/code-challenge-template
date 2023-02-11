@@ -32,7 +32,9 @@ pip install -r requirements.txt
 <br/>
 
 <h3>Database Setup</h3>
-Install the posgresql database depending on your operating system. Execute the following commands to create database, user and grant required roles to the created user.
+
+<br/>Install the posgresql database depending on your operating system. Execute the following commands to create database, user and grant required roles to the created user.
+
 ```
 brew install postgresql
 sudo -u postgres psql
@@ -43,10 +45,12 @@ ALTER ROLE admin SET client_encoding TO 'utf8';
 ALTER ROLE admin SET default_transaction_isolation TO 'read committed';
 ALTER ROLE admin SET timezone TO 'UTC';
 ```
-Execute the following command to migrate all the migrations to the database
+
+<br/>Execute the following command to migrate all the migrations to the database
 ```
 python manage.py migrate
 ```
+
 <h3>Runserver</h3>
 Bring the server by executing the following command.
 ```
