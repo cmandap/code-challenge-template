@@ -110,5 +110,13 @@ python manage.py test
 
 <a name="deploy"></a>
 <h2>Deployment</h2>
+I would do the following to deploy the code on to AWS cloud.
+* Create two ec2 intances, one for serving the application and one serving the database and make sure they are created under a VPN.
+* Establish a CI/CD pipeline for the continuous deployment either by using jenkins or github worflow
+* Set the cron job on top of data ingetion scripts.
+* Set up Cloudwatch alarms to monitor the application logs.
+* Set up nginix to serve as a reverse proxy for the server.
+* Enable Auto Scaling on instances to auto deploy additional instances to handle more client connections.
+
 
 
