@@ -3,15 +3,18 @@
 
     Author: Chandrahas Reddy Mandapati 
 """
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import WeatherRecord, WeatherStationStats
-from .serializers import WeatherRecordSerializer, WeatherStationStatsSerializer
-from rest_framework.pagination import PageNumberPagination
 from datetime import datetime
 from http import HTTPStatus
-from .filters import WeatherRecordFilterBackend, WeatherStationStatsFilterBackend
+
+from django.shortcuts import render
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .filters import (WeatherRecordFilterBackend,
+                      WeatherStationStatsFilterBackend)
+from .models import WeatherRecord, WeatherStationStats
+from .serializers import WeatherRecordSerializer, WeatherStationStatsSerializer
 
 
 class WeatherRecordList(APIView, PageNumberPagination):

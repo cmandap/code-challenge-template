@@ -3,9 +3,9 @@
 
     Author: Chandrahas Reddy Mandapati 
 """
-from rest_framework.filters import BaseFilterBackend
 import coreapi
 import coreschema
+from rest_framework.filters import BaseFilterBackend
 
 
 class WeatherRecordFilterBackend(BaseFilterBackend):

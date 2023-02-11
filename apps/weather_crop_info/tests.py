@@ -2,15 +2,20 @@
     This module contains tests for weather_crop_info app. Test classes are 
     seperated based on model, views and controllers.
 """
-from django.test import TestCase
-from .scripts.ingest_weather_records import file_handler as weather_record_file_handler
-from .scripts.ingest_crop_yield_records import file_handler as crop_yield_file_handler
-from .scripts.calculate_weather_station_stats import update_weather_station_stats
-from .models import WeatherRecord, WeatherStation, WeatherStationStats, CropYieldRecord
+import os
 from datetime import datetime
+
+from django.test import TestCase
 from django.urls import reverse
 
-import os
+from .models import (CropYieldRecord, WeatherRecord, WeatherStation,
+                     WeatherStationStats)
+from .scripts.calculate_weather_station_stats import \
+    update_weather_station_stats
+from .scripts.ingest_crop_yield_records import \
+    file_handler as crop_yield_file_handler
+from .scripts.ingest_weather_records import \
+    file_handler as weather_record_file_handler
 
 
 class DataIngestionTestCase(TestCase):
