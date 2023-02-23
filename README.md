@@ -74,6 +74,10 @@ Data ingestion scripts to populate the weather, crop yield data from files to mo
 ```
 python manage.py runscript <file_name_without_.py_extension>
 ```
+<br/> To update the conflict records due to unique constraint violation, execute the following commang.
+```
+python manage.py runscript <file_name_without_.py_extension> --script-args update_conflicts
+```
 
 <a name="da"></a>
 <h2>Data Analysis</h2>
