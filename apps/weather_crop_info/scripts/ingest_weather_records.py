@@ -13,6 +13,10 @@ from os import listdir
 from os.path import isfile, join
 from django.conf import settings
 from pathlib import Path
+import multiprocessing as mp
+
+# Need this for MacOS version since the default process start method has changed to 'spawn' from 'fork'
+mp.set_start_method('fork', force=True)
 
 
 def file_handler(file_path, update_conflicts=False):
@@ -108,12 +112,16 @@ def run(*args):
     files = [join(settings.WEATHER_DATA_DIR, f) for f in listdir(
         settings.WEATHER_DATA_DIR) if isfile(join(settings.WEATHER_DATA_DIR, f))]
 
-    # TODO : process all the files parallely for faster execution.
-    for file in files:
-        inserted_records_count += file_handler(
-            file, True if 'update_conflicts' in args else False)
+    # building function arguments to be assigned to process in pool
+    pool_args = [[file, True if 'update_conflicts' in args else False]
+                 for file in files]
+
+    # process all the files parallely for faster execution.
+    # TODO: configure pool size dynamically.
+    with mp.Pool(5) as pool:
+        inserted_records_counts = pool.starmap(file_handler, pool_args)
 
     # TODO : invoke calculate_weather_station_stats script automatically.
     print(
-        f"Finally inserted {inserted_records_count} new records in \
+        f"Finally inserted {sum(inserted_records_counts)} new records in \
             {(datetime.now() - start_time).total_seconds()} seconds")
