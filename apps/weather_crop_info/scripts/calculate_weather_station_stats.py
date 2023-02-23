@@ -13,12 +13,15 @@ from django.db.models import F
 from datetime import datetime
 
 
-def update_weather_station_stats():
+def update_weather_station_stats(update_conflicts=False):
     """
         Calculates weather station statistics for every year from the
         WeatherRecord model and update them into WeatherStationStats model.
         Ensures that only records to be created are created, records are updated
-         otherwise.
+        otherwise.
+
+        This implementation is made compatible with PostgreSQL. One might have to
+        check the documentation for compatibility when trying to update the DB.
 
         Args:
             Accepts No Args.
@@ -28,80 +31,57 @@ def update_weather_station_stats():
     """
     start_time = datetime.now()
 
-    # extract the statistical information directly from the WeatherRecord model
-    records = WeatherRecord.objects.values(
-        'weather_station',
-        year=F('date__year')
-    ).annotate(
-        avg_max_temp=Avg('max_temp'),
-        avg_min_temp=Avg('min_temp'),
-        total_precipitation=Sum('precipitation'),
-    ).exclude(
-        max_temp__isnull=True,
-        min_temp__isnull=True,
-        precipitation__isnull=True
-    )
+    try:
+        # extract the statistical information directly from the WeatherRecord model
+        records = WeatherRecord.objects.values(
+            'weather_station',
+            year=F('date__year')
+        ).annotate(
+            avg_max_temp=Avg('max_temp'),
+            avg_min_temp=Avg('min_temp'),
+            total_precipitation=Sum('precipitation'),
+        ).exclude(
+            max_temp__isnull=True,
+            min_temp__isnull=True,
+            precipitation__isnull=True
+        )
 
-    records_to_update = []
-    records_to_create = []
+        records = [
+            {
+                "weather_station_id": record.get("weather_station"),
+                **record,
+            }
+            for record in records
+        ]
+        [record.pop("weather_station") for record in records]
 
-    # check what all records exists already based on the assumption that all the
-    # existing records will have id.
-    # TODO : populate records_to_update only if the corresponsing fields have changed
-    records = [
-        {
-            "id": WeatherStationStats.objects.filter(
-                weather_station=record.get("weather_station"),
-                year=record.get("year")
-            ).first().id
-            if WeatherStationStats.objects.filter(
-                weather_station=record.get("weather_station"),
-                year=record.get("year")
-            ).first() is not None
-            else None,
-            **record,
-        }
-        for record in records
-    ]
+        if update_conflicts:
+            # create all the records in bulk (for better performance).
+            # The bulk_create with update_confilcts = True does a upsert operation.
+            # Only total_yield and update_by are updated on unique constraint violation.
+            created_records = WeatherStationStats.objects.bulk_create(
+                [WeatherStationStats(**values) for values in records],
+                update_conflicts=True,
+                unique_fields=['weather_station', 'year'],
+                update_fields=["avg_min_temp",
+                               "avg_max_temp", "total_precipitation"],
+                batch_size=1000)
+        else:
+            # Incase if update to the existing records is not desired
+            created_records = WeatherStationStats.objects.bulk_create(
+                [WeatherStationStats(**values) for values in records],
+                ignore_conflicts=True,
+                batch_size=1000)
 
-    [records_to_update.append(record) if record["id"] is not None
-        else records_to_create.append(record) for record in records]
-
-    [record.pop("id") for record in records_to_create]
-    records_to_create = [
-        {
-            "weather_station_id": record.get("weather_station"),
-            **record,
-        }
-        for record in records_to_create
-    ]
-    [record.pop("weather_station") for record in records_to_create]
-
-    # create all the records in bulk (for better performance).
-    created_records = WeatherStationStats.objects.bulk_create(
-        [WeatherStationStats(**values) for values in records_to_create],
-        batch_size=1000)
-
-    # update all the records in bulk
-    WeatherStationStats.objects.bulk_update(
-        [
-            WeatherStationStats(id=values.get("id"), avg_max_temp=values.get(
-                "avg_max_temp"), avg_min_temp=values.get(
-                "avg_min_temp"), total_precipitation=values.get(
-                "total_precipitation"))
-            for values in records_to_update
-        ],
-        ["avg_min_temp", "avg_max_temp", "total_precipitation"],
-        batch_size=1000
-    )
-
-    print(f"Inserted {len(created_records)} new weather station stats records\
-         in {(datetime.now() - start_time).total_seconds()} seconds")
-    print(f"Updated {len(records_to_update)} new weather station stats records\
-         in {(datetime.now() - start_time).total_seconds()} seconds")
+        print(f"Inserted {len(created_records)} new weather station stats records\
+            in {(datetime.now() - start_time).total_seconds()} seconds")
+    except Exception as err:
+        print(
+            f"Encountered exception while calculating Stats")
+        raise err
 
 
-def run():
+def run(*args):
     """
         This function is the starting point of script execution. Invoked
         automatically by the runscript.
@@ -112,4 +92,4 @@ def run():
         Returns:
             None.
     """
-    update_weather_station_stats()
+    update_weather_station_stats(True if 'update_conflicts' in args else False)

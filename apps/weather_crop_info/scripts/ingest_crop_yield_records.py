@@ -13,11 +13,14 @@ from os.path import isfile, join
 from django.conf import settings
 
 
-def file_handler(file_path):
+def file_handler(file_path, update_conflicts=False):
     """
         A file handler that reads the crop yield information from the text file
         and updates the CropYieldRecord model. Ensures that only records to be 
         created are created, records are updated otherwise. 
+
+        This implementation is made compatible with PostgreSQL. One might have to
+        check the documentation for compatibility when trying to update the DB.
 
         Args:
         file_path (String): file path related to BASE_DIR setting.
@@ -29,70 +32,48 @@ def file_handler(file_path):
     start_time = datetime.now()
 
     records = []
-    records_to_update = []
-    records_to_create = []
 
-    # extract the records from the file
-    with open(file_path, "r") as file:
-        for record in file:
-            year, total_yield = map(int, record.strip().split("\t"))
-            records.append(
-                {
-                    "year": year,
-                    "total_yield": total_yield,
-                    "create_by": "ingest_crop_yield_records_script",
-                    "update_by": "ingest_crop_yield_records_script",
-                }
-            )
+    try:
+        # extract the records from the file
+        with open(file_path, "r") as file:
+            for record in file:
+                year, total_yield = map(int, record.strip().split("\t"))
+                records.append(
+                    {
+                        "year": year,
+                        "total_yield": total_yield,
+                        "create_by": "ingest_crop_yield_records_script",
+                        "update_by": "ingest_crop_yield_records_script",
+                    }
+                )
 
-    # check what all records exists already based on the assumption that all the
-    # existing records will have id.
-    # TODO : populate records_to_update only if the corresponsing fields have changed
-    records = [
-        {
-            "id": CropYieldRecord.objects.filter(
-                year=record.get("year")
-            ).first().id
-            if CropYieldRecord.objects.filter(
-                year=record.get("year")
-            ).first() is not None
-            else None,
-            **record,
-        }
-        for record in records
-    ]
+        if update_conflicts:
+            # create all the records in bulk (for better performance).
+            # The bulk_create with update_confilcts = True does a upsert operation.
+            # Only total_yield and update_by are updated on unique constraint violation.
+            created_records = CropYieldRecord.objects.bulk_create(
+                [CropYieldRecord(**values) for values in records],
+                update_conflicts=True,
+                unique_fields=['year'],
+                update_fields=['total_yield', 'update_by'],
+                batch_size=1000)
+        else:
+            # Incase if update to the existing records is not desired
+            created_records = CropYieldRecord.objects.bulk_create(
+                [CropYieldRecord(**values) for values in records],
+                ignore_conflicts=True,
+                batch_size=1000)
 
-    [records_to_update.append(record) if record["id"] is not None
-        else records_to_create.append(record) for record in records]
-
-    [record.pop("id") for record in records_to_create]
-
-    [record.pop("create_by") for record in records_to_update]
-
-    # create all the records in bulk (for better performance).
-    created_records = CropYieldRecord.objects.bulk_create(
-        [CropYieldRecord(**values) for values in records_to_create],
-        batch_size=1000)
-
-    # update all the records in bulk
-    CropYieldRecord.objects.bulk_update(
-        [
-            CropYieldRecord(id=values.get("id"), total_yield=values.get(
-                "total_yield"), update_by=values.get("update_by"))
-            for values in records_to_update
-        ],
-        ["total_yield"],
-        batch_size=1000
-    )
-
-    print(f"Inserted {len(created_records)} new records for the file {file_path}\
-         in {(datetime.now() - start_time).total_seconds()} seconds")
-    print(f"Updated {len(records_to_update)} new records for the file {file_path}\
-        in {(datetime.now() - start_time).total_seconds()} seconds")
-    return len(created_records), len(records_to_update)
+        print(f"Inserted/Updated {len(created_records)} new records for the file {file_path}\
+            in {(datetime.now() - start_time).total_seconds()} seconds")
+        return len(created_records)
+    except Exception as err:
+        print(
+            f"Encountered exception while operating on file {file_path}")
+        raise err
 
 
-def run():
+def run(*args):
     """
         This function is the starting point of script execution. Invoked
         automatically by the runscript.
@@ -105,7 +86,6 @@ def run():
     """
     start_time = datetime.now()
     inserted_records_count = 0
-    updated_records_count = 0
 
     # extract all the files in the folder set in settings.
     files = [join(settings.CROP_YIELD_DATA_DIR, f)
@@ -114,9 +94,8 @@ def run():
 
     # TODO : process all the files parallely for faster execution.
     for file in files:
-        ret += file_handler(file)
-        inserted_records_count += ret[0]
-        updated_records_count += ret[1]
+        inserted_records_count += file_handler(
+            file, True if 'update_conflicts' in args else False)
     print(
-        f"Finally inserted {inserted_records_count} new records in \
+        f"Finally updated {inserted_records_count} new records in \
         {(datetime.now() - start_time).total_seconds()} seconds")
